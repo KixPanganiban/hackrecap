@@ -1,0 +1,36 @@
+- name: Deploy HackRecap
+  hosts: hackrecap
+  become: true
+  remote_user: root
+
+  tasks:
+    - name: Update Git repository
+      git:
+        repo: "https://github.com/kixpanganiban/hackrecap.git"
+        dest: /root/hackrecap
+        version: main
+
+    - name: Stop Docker containers
+      shell: docker compose stop
+      args:
+        chdir: /root/hackrecap
+
+    - name: Build Docker containers
+      shell: docker compose build
+      args:
+        chdir: /root/hackrecap
+
+    - name: Start Docker containers
+      shell: docker compose up -d
+      args:
+        chdir: /root/hackrecap
+
+    - name: Wait for 10 seconds
+      pause:
+        seconds: 10
+
+    - name: Flush Redis cache
+      shell: docker compose exec redis redis-cli FLUSHDB
+      args:
+        chdir: /root/hackrecap
+        executable: /bin/bash
