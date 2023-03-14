@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    command: gunicorn web:app -w 4 -b 0.0.0.0:8888
+    environment:
+      - OPENAI_KEY=${OPENAI_KEY}
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./:/app
+    depends_on:
+      - redis
+    links:
+      - redis
+  redis:
+    image: redis

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css"
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <title>HackRecap</title>
+  </head>
+  <body>
+    <div class="container" style="padding: 5% 0 5% 0">
+      <h1 class="title">HackRecap</h1>
+      <h2 class="subtitle">Summaries of <a href="https://hacker-news.firebaseio.com/v0/topstories.json">Top Stories</a> from HackerNews. Updated daily.</h2>
+      <hr />
+      {% for story in stories %}
+      <article class="media">
+        <figure class="media-left">
+          <p class="image is-64x64">
+            {% if story.6 %}
+            <img src="{{ story.6 }}" alt="{{ story.2 }}" />
+            {% else %}
+            &nbsp;
+            {% endif %}
+          </p>
+        </figure>
+        <div class="media-content">
+          <div class="content">
+            <p><a href="{{ story.2 }}"><strong>{{ story.1 }}</strong></a> | <a href="https://news.ycombinator.com/item?id={{ story.0 }}">Discuss on HN</a></p>
+            <p>{{ story.5 }}</p>
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+      <div style="padding: 5%">
+        <nav
+          class="pagination is-centered"
+          role="navigation"
+          aria-label="pagination"
+        >
+          {% if page == 1 %}
+          <a class="pagination-previous" disabled>Previous</a>
+          {% else %}
+          <a href="?p={{ page - 1 }}" class="pagination-previous">Previous</a>
+          {% endif %} {% if page == total_pages %}
+          <a class="pagination-next" disabled>Next page</a>
+          {% else %}
+          <a href="?p={{ page + 1 }}" class="pagination-next">Next page</a>
+          {% endif %}
+
+          <ul class="pagination-list">
+            {% if total_pages <= 9 %} {% for p in range(1, total_pages + 1) %}
+            {% if p == page %}
+            <li>
+              <a
+                class="pagination-link is-current"
+                aria-label="Page {{ p }}"
+                aria-current="page"
+                >{{ p }}</a
+              >
+            </li>
+            {% else %}
+            <li>
+              <a
+                href="?p={{ p }}"
+                class="pagination-link"
+                aria-label="Goto page {{ p }}"
+                >{{ p }}</a
+              >
+            </li>
+            {% endif %} {% endfor %} {% else %} {% if page <= 5 %} {% for p in
+            range(1, 7) %} {% if p == page %}
+            <li>
+              <a
+                class="pagination-link is-current"
+                aria-label="Page {{ p }}"
+                aria-current="page"
+                >{{ p }}</a
+              >
+            </li>
+            {% else %}
+            <li>
+              <a
+                href="?p={{ p }}"
+                class="pagination-link"
+                aria-label="Goto page {{ p }}"
+                >{{ p }}</a
+              >
+            </li>
+            {% endif %} {% endfor %}
+            <li><span class="pagination-ellipsis">&hellip;</span></li>
+            <li>
+              <a
+                href="?p={{ total_pages }}"
+                class="pagination-link"
+                aria-label="Goto page {{ total_pages }}"
+                >{{ total_pages }}</a
+              >
+            </li>
+            {% elif page >= total_pages - 4 %}
+            <li>
+              <a href="?p=1" class="pagination-link" aria-label="Goto page 1"
+                >1</a
+              >
+            </li>
+            <li><span class="pagination-ellipsis">&hellip;</span></li>
+            {% for p in range(total_pages - 5, total_pages + 1) %} {% if p ==
+            page %}
+            <li>
+              <a
+                class="pagination-link is-current"
+                aria-label="Page {{ p }}"
+                aria-current="page"
+                >{{ p }}</a
+              >
+            </li>
+            {% else %}
+            <li>
+              <a
+                href="?p={{ p }}"
+                class="pagination-link"
+                aria-label="Goto page {{ p }}"
+                >{{ p }}</a
+              >
+            </li>
+            {% endif %} {% endfor %} {% else %}
+            <li>
+              <a href="?p=1" class="pagination-link" aria-label="Goto page 1"
+                >1</a
+              >
+            </li>
+            <li><span class="pagination-ellipsis">&hellip;</span></li>
+            {% for p in range(page - 2, page + 3) %} {% if p == page %}
+            <li>
+              <a
+                class="pagination-link is-current"
+                aria-label="Page {{ p }}"
+                aria-current="page"
+                >{{ p }}</a
+              >
+            </li>
+            {% else %}
+            <li>
+              <a
+                href="?p={{ p }}"
+                class="pagination-link"
+                aria-label="Goto page {{ p }}"
+                >{{ p }}</a
+              >
+            </li>
+            {% endif %} {% endfor %}
+            <li><span class="pagination-ellipsis">&hellip;</span></li>
+            <li>
+              <a
+                href="?p={{ total_pages }}"
+                class="pagination-link"
+                aria-label="Goto page {{ total_pages }}"
+                >{{total_pages }}</a
+              >
+            </li>
+            {% endif %} {% endif %}
+          </ul>
+        </nav>
+      </div>
+      <footer class="footer">
+        <div class="content has-text-centered">
+          <p>
+            <strong>HackRecap</strong> by <a href="https://kix.dev">Kix Panganiban</a>.
+          </p>
+          <p>Last update: {{latest}}</p>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>
