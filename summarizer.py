@@ -1,5 +1,6 @@
 import datetime
 from concurrent.futures import ThreadPoolExecutor
+import logging
 import sqlite3
 import os
 import requests
@@ -8,6 +9,9 @@ from goose3 import Goose
 import redis
 import openai
 import tiktoken
+
+
+logger = logging.getLogger(__name__)
 
 
 def initialize_database():
@@ -59,7 +63,7 @@ def fetch_stories():
 
     url = "https://hacker-news.firebaseio.com/v0/topstories.json"
     response = requests.get(url)
-    print(f"Retrieved {len(response.json())} stories.")
+    logger.info(f"Retrieved {len(response.json())} stories.")
 
     with ThreadPoolExecutor() as executor:
         futures = []
@@ -78,7 +82,7 @@ def fetch_stories():
                 "SELECT * FROM stories WHERE id = ?", (story_details["id"],)
             )
             if cursor_thread.fetchone() is not None:
-                print(f"Skipped story: {story_details['id']}")
+                logger.info(f"Skipped story: {story_details['id']}")
                 continue
             if (
                 story_details["time"] >= (datetime.datetime.now().timestamp() - 86400)
@@ -97,13 +101,13 @@ def fetch_stories():
                     ),
                 )
                 conn_thread.commit()
-                print(f"Added story: {story_details['title']}")
+                logger.info(f"Added story: {story_details['title']}")
 
             # Close the connection and cursor for each thread
             cursor_thread.close()
             conn_thread.close()
 
-    print("Done fetching stories.")
+    logger.info("Done fetching stories.")
 
 
 def fetch_article_texts():
@@ -128,7 +132,7 @@ def fetch_article_texts():
             g = Goose({"enable_image_fetching": True})
             article = g.extract(url=story[2])
         except:
-            print(f"Failed to fetch article text for story: {story[1]}")
+            logger.info(f"Failed to fetch article text for story: {story[1]}")
         else:
             conn = sqlite3.connect("db.sqlite")
             cursor = conn.cursor()
@@ -141,7 +145,7 @@ def fetch_article_texts():
                 ),
             )
             conn.commit()
-            print(f"Added text to story: {story[1]}")
+            logger.info(f"Added text to story: {story[1]}")
             conn.close()
 
     conn = sqlite3.connect("db.sqlite")
@@ -149,13 +153,13 @@ def fetch_article_texts():
     cursor.execute("SELECT * FROM stories WHERE text IS NULL")
     stories = cursor.fetchall()
     conn.close()
-    print(f"Fetching article texts for {len(stories)} stories.")
+    logger.info(f"Fetching article texts for {len(stories)} stories.")
     with ThreadPoolExecutor() as executor:
         futures = [executor.submit(_fetch_text_job, story) for story in stories]
         for future in futures:
             future.result()
 
-    print("Done fetching article texts.")
+    logger.info("Done fetching article texts.")
 
 
 def count_tokens(text):
@@ -297,7 +301,7 @@ def summarize_all_texts():
         try:
             summary = summarize_text(story[4])
         except Exception as e:
-            print(f"Failed to summarize text for story: {story[1]}. Error: {str(e)}")
+            logger.info(f"Failed to summarize text for story: {story[1]}. Error: {str(e)}")
         else:
             conn = sqlite3.connect("db.sqlite")
             cursor = conn.cursor()
@@ -305,7 +309,7 @@ def summarize_all_texts():
                 "UPDATE stories SET summary = ? WHERE id = ?", (summary, story[0])
             )
             conn.commit()
-            print(f"Added summary to story: {story[1]}")
+            logger.info(f"Added summary to story: {story[1]}")
             conn.close()
 
     conn = sqlite3.connect("db.sqlite")
@@ -314,13 +318,13 @@ def summarize_all_texts():
     stories = cursor.fetchall()
     conn.close()
 
-    print(f"Summarizing texts for {len(stories)} stories.")
+    logger.info(f"Summarizing texts for {len(stories)} stories.")
     with ThreadPoolExecutor() as executor:
         futures = [executor.submit(_summarize_job, story) for story in stories]
         for future in futures:
             future.result()
 
-    print("Done summarizing texts.")
+    logger.info("Done summarizing texts.")
 
 
 if __name__ == "__main__":
