@@ -1,12 +1,18 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="HackRecap is a Python project that fetches the top stories from Hacker News, fetches their text content from the original webpage, and summarizes them using OpenAI's text-davinci-03 model. The summarized stories are then displayed in a paginated list on a Flask web app.">
-    <meta name="keywords" content="HackRecap, Python, project, Hacker News, top stories, text content, OpenAI, text-davinci-03, model, summarized, Flask, web app">
-    <meta name="robots" content="index, follow">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="HackRecap is a Python project that fetches the top stories from Hacker News, fetches their text content from the original webpage, and summarizes them using OpenAI's text-davinci-03 model. The summarized stories are then displayed in a paginated list on a Flask web app."
+    />
+    <meta
+      name="keywords"
+      content="HackRecap, Python, project, Hacker News, top stories, text content, OpenAI, text-davinci-03, model, summarized, Flask, web app"
+    />
+    <meta name="robots" content="index, follow" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css"
@@ -15,26 +21,44 @@
     />
 
     <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="HackRecap - Summarized Hacker News Top Stories">
-    <meta name="twitter:description" content="HackRecap is a Python project that fetches the top stories from Hacker News, fetches their text content from the original webpage, and summarizes them using OpenAI's text-davinci-03 model. The summarized stories are then displayed in a paginated list on a Flask web app.">
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="HackRecap - Summarized Hacker News Top Stories"
+    />
+    <meta
+      name="twitter:description"
+      content="HackRecap is a Python project that fetches the top stories from Hacker News, fetches their text content from the original webpage, and summarizes them using OpenAI's text-davinci-03 model. The summarized stories are then displayed in a paginated list on a Flask web app."
+    />
     <!-- <meta name="twitter:image" content="https://example.com/path/to/your/image.jpg">
     <meta name="twitter:site" content="@your_twitter_handle"> -->
 
     <!-- Open Graph -->
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="HackRecap - Summarized Hacker News Top Stories">
-    <meta property="og:description" content="HackRecap is a Python project that fetches the top stories from Hacker News, fetches their text content from the original webpage, and summarizes them using OpenAI's text-davinci-03 model. The summarized stories are then displayed in a paginated list on a Flask web app.">
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:title"
+      content="HackRecap - Summarized Hacker News Top Stories"
+    />
+    <meta
+      property="og:description"
+      content="HackRecap is a Python project that fetches the top stories from Hacker News, fetches their text content from the original webpage, and summarizes them using OpenAI's text-davinci-03 model. The summarized stories are then displayed in a paginated list on a Flask web app."
+    />
     <!-- <meta property="og:image" content="https://example.com/path/to/your/image.jpg"> -->
-    <meta property="og:url" content="https://hackrecap.kix.dev">
-    <meta property="og:site_name" content="HackRecap">
+    <meta property="og:url" content="https://hackrecap.kix.dev" />
+    <meta property="og:site_name" content="HackRecap" />
 
     <title>HackRecap - Summarized Hacker News Top Stories</title>
   </head>
   <body>
     <div class="container" style="padding: 5% 0 5% 0">
       <h1 class="title">HackRecap</h1>
-      <h2 class="subtitle">Summaries of <a href="https://hacker-news.firebaseio.com/v0/topstories.json">Top Stories</a> from HackerNews. Updated daily.</h2>
+      <h2 class="subtitle">
+        Summaries of
+        <a href="https://hacker-news.firebaseio.com/v0/topstories.json"
+          >Top Stories</a
+        >
+        from HackerNews. Updated daily.
+      </h2>
       <hr />
       {% for story in stories %}
       <article class="media">
@@ -42,14 +66,17 @@
           <p class="image is-64x64">
             {% if story.6 %}
             <img src="{{ story.6 }}" alt="{{ story.2 }}" />
-            {% else %}
-            &nbsp;
-            {% endif %}
+            {% else %} &nbsp; {% endif %}
           </p>
         </figure>
         <div class="media-content">
           <div class="content">
-            <p><a href="{{ story.2 }}"><strong>{{ story.1 }}</strong></a> | <a href="https://news.ycombinator.com/item?id={{ story.0 }}">Discuss on HN</a></p>
+            <p>
+              <a href="{{ story.2 }}"><strong>{{ story.1 }}</strong></a> |
+              <a href="https://news.ycombinator.com/item?id={{ story.0 }}"
+                >Discuss on HN</a
+              >
+            </p>
             <p>{{ story.5 }}</p>
           </div>
         </div>
@@ -91,43 +118,17 @@
                 >{{ p }}</a
               >
             </li>
-            {% endif %} {% endfor %} {% else %} {% if page <= 5 %} {% for p in
-            range(1, 7) %} {% if p == page %}
-            <li>
-              <a
-                class="pagination-link is-current"
-                aria-label="Page {{ p }}"
-                aria-current="page"
-                >{{ p }}</a
-              >
-            </li>
-            {% else %}
-            <li>
-              <a
-                href="?p={{ p }}"
-                class="pagination-link"
-                aria-label="Goto page {{ p }}"
-                >{{ p }}</a
-              >
-            </li>
-            {% endif %} {% endfor %}
-            <li><span class="pagination-ellipsis">&hellip;</span></li>
-            <li>
-              <a
-                href="?p={{ total_pages }}"
-                class="pagination-link"
-                aria-label="Goto page {{ total_pages }}"
-                >{{ total_pages }}</a
-              >
-            </li>
-            {% elif page >= total_pages - 4 %}
+            {% endif %} {% endfor %} {% else %}
             <li>
               <a href="?p=1" class="pagination-link" aria-label="Goto page 1"
                 >1</a
               >
             </li>
-            <li><span class="pagination-ellipsis">&hellip;</span></li>
-            {% for p in range(total_pages - 5, total_pages + 1) %} {% if p ==
+            {% if page > 4 %}
+            <li>
+              <span class="pagination-ellipsis">&hellip;</span>
+            </li>
+            {% endif %} {% if page == 1 %} {% for p in range(1, 6) %} {% if p ==
             page %}
             <li>
               <a
@@ -146,14 +147,8 @@
                 >{{ p }}</a
               >
             </li>
-            {% endif %} {% endfor %} {% else %}
-            <li>
-              <a href="?p=1" class="pagination-link" aria-label="Goto page 1"
-                >1</a
-              >
-            </li>
-            <li><span class="pagination-ellipsis">&hellip;</span></li>
-            {% for p in range(page - 2, page + 3) %} {% if p == page %}
+            {% endif %} {% endfor %} {% elif page == 2 %} {% for p in range(1,
+            7) %} {% if p == page %}
             <li>
               <a
                 class="pagination-link is-current"
@@ -171,14 +166,74 @@
                 >{{ p }}</a
               >
             </li>
-            {% endif %} {% endfor %}
-            <li><span class="pagination-ellipsis">&hellip;</span></li>
+            {% endif %} {% endfor %} {% elif page == total_pages - 1 %} {% for p
+            in range(total_pages - 5, total_pages + 1) %} {% if p == page %}
+            <li>
+              <a
+                class="pagination-link is-current"
+                aria-label="Page {{ p }}"
+                aria-current="page"
+                >{{ p }}</a
+              >
+            </li>
+            {% else %}
+            <li>
+              <a
+                href="?p={{ p }}"
+                class="pagination-link"
+                aria-label="Goto page {{ p }}"
+                >{{ p }}</a
+              >
+            </li>
+            {% endif %} {% endfor %} {% elif page == total_pages %} {% for p in
+            range(total_pages - 6, total_pages) %} {% if p == page %}
+            <li>
+              <a
+                class="pagination-link is-current"
+                aria-label="Page {{ p }}"
+                aria-current="page"
+                >{{ p }}</a
+              >
+            </li>
+            {% else %}
+            <li>
+              <a
+                href="?p={{ p }}"
+                class="pagination-link"
+                aria-label="Goto page {{ p }}"
+                >{{ p }}</a
+              >
+            </li>
+            {% endif %} {% endfor %} {% else %} {% for p in range(page - 2, page
+            + 3) %} {% if p == page %}
+            <li>
+              <a
+                class="pagination-link is-current"
+                aria-label="Page {{ p }}"
+                aria-current="page"
+                >{{ p }}</a
+              >
+            </li>
+            {% else %}
+            <li>
+              <a
+                href="?p={{ p }}"
+                class="pagination-link"
+                aria-label="Goto page {{ p }}"
+                >{{ p }}</a
+              >
+            </li>
+            {% endif %} {% endfor %} {% if page < total_pages - 3 %}
+            <li>
+              <span class="pagination-ellipsis">…</span>
+            </li>
+            {% endif %}
             <li>
               <a
                 href="?p={{ total_pages }}"
                 class="pagination-link"
                 aria-label="Goto page {{ total_pages }}"
-                >{{total_pages }}</a
+                >{{ total_pages }}</a
               >
             </li>
             {% endif %} {% endif %}
@@ -188,7 +243,11 @@
       <footer class="footer">
         <div class="content has-text-centered">
           <p>
-            <strong>HackRecap</strong> by <a href="https://kix.dev">Kix Panganiban</a>. <a href="https://github.com/KixPanganiban/hackrecap">Github Repository</a>.
+            <strong>HackRecap</strong> by
+            <a href="https://kix.dev">Kix Panganiban</a>.
+            <a href="https://github.com/KixPanganiban/hackrecap"
+              >Github Repository</a
+            >.
           </p>
           <p>Last update: {{latest}}</p>
         </div>
