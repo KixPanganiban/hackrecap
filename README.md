@@ -30,7 +30,7 @@ To get started, follow these steps:
 
     OPENAI_KEY=xxx docker compose exec web python summarizer.py
 
-6. Open your web browser and go to http://localhost:5000.
+6. Open your web browser and go to http://localhost:8888.
 
 ## Configuration
 
