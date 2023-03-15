@@ -7,7 +7,7 @@ import requests
 from goose3 import Goose
 import redis
 import openai
-from tiktoken import Tokenizer
+import tiktoken
 
 
 def initialize_database():
@@ -124,14 +124,12 @@ def fetch_article_texts():
 
 
 def count_tokens(text):
-    tokenizer = Tokenizer()
-    tokens = tokenizer.tokenize(text)
-    return len(tokens)
+    encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
+    len(encoding.encode(text))
 
 
 def chunk_text(text, max_tokens):
-    tokenizer = Tokenizer()
-    tokens = tokenizer.tokenize(text)
+    tokens = count_tokens(text)
     chunks = []
 
     current_chunk = []
