@@ -125,7 +125,7 @@ def fetch_article_texts():
 
 def count_tokens(text):
     encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
-    len(encoding.encode(text))
+    return len(encoding.encode(text))
 
 
 def chunk_text(text, max_tokens):
