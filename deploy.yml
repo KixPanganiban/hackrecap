@@ -21,9 +21,11 @@
         chdir: /root/hackrecap
 
     - name: Start Docker containers
-      shell: docker compose up -d
+      command: docker compose up -d
       args:
         chdir: /root/hackrecap
+      environment:
+        OPENAI_KEY: "{{ lookup('env', 'OPENAI_KEY') }}"
 
     - name: Wait for 10 seconds
       pause:
