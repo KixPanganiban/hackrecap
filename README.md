@@ -1,4 +1,4 @@
-# HackRecape
+# HackRecap
 
 HackRecap is a Python project that fetches the top stories from Hacker News, fetches their text content from the original webpage, and summarizes them using OpenAI's text-davinci-03 model. The summarized stories are then displayed in a paginated list on a Flask web app.
 
