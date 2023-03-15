@@ -115,7 +115,7 @@ def fetch_article_texts():
     )
     stories = cursor.fetchall()
     conn.close()
-
+    print(f"Fetching article texts for {len(stories)} stories.")
     with ThreadPoolExecutor() as executor:
         futures = [executor.submit(_fetch_text_job, story) for story in stories]
         for future in futures:
@@ -198,6 +198,7 @@ def summarize_all_texts():
     stories = cursor.fetchall()
     conn.close()
 
+    print(f"Summarizing texts for {len(stories)} stories.")
     with ThreadPoolExecutor() as executor:
         futures = [executor.submit(_summarize_job, story) for story in stories]
         for future in futures:
