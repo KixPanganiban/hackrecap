@@ -129,7 +129,8 @@ def count_tokens(text):
 
 
 def chunk_text(text, max_tokens):
-    tokens = count_tokens(text)
+    encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
+    tokens = encoding.encode(text)
     chunks = []
 
     current_chunk = []
@@ -141,12 +142,12 @@ def chunk_text(text, max_tokens):
             current_chunk.append(token)
             current_token_count += token_count
         else:
-            chunks.append("".join(current_chunk))
+            chunks.append(encoding.decode(current_chunk))
             current_chunk = [token]
             current_token_count = token_count
 
     if current_chunk:
-        chunks.append("".join(current_chunk))
+        chunks.append(encoding.decode(current_chunk))
 
     return chunks
 
