@@ -12,6 +12,10 @@ import tiktoken
 
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+handler = logging.StreamHandler()
+handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+logger.addHandler(handler)
 
 
 def initialize_database():
@@ -286,6 +290,7 @@ def summarize_all_texts():
     Returns:
         None
     """
+
     def _summarize_job(story):
         """
         Summarizes the text of a given story and updates the summary in the database.
@@ -301,7 +306,9 @@ def summarize_all_texts():
         try:
             summary = summarize_text(story[4])
         except Exception as e:
-            logger.info(f"Failed to summarize text for story: {story[1]}. Error: {str(e)}")
+            logger.info(
+                f"Failed to summarize text for story: {story[1]}. Error: {str(e)}"
+            )
         else:
             conn = sqlite3.connect("db.sqlite")
             cursor = conn.cursor()
