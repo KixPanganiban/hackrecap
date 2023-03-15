@@ -88,61 +88,114 @@
           role="navigation"
           aria-label="pagination"
         >
-          {% if page == 1 %}
-          <a class="pagination-previous" disabled>Previous</a>
-          {% else %}
-          <a href="?p={{ page - 1 }}" class="pagination-previous">Previous</a>
-          {% endif %} {% if page == total_pages %}
-          <a class="pagination-next" disabled>Next page</a>
-          {% else %}
-          <a href="?p={{ page + 1 }}" class="pagination-next">Next page</a>
-          {% endif %}
-
-          <ul class="pagination-list">
-            {% if total_pages <= 1 %}
-              <li><span class="pagination-link is-current" aria-label="Page 1" aria-current="page">1</span></li>
-            {% else %}
+        {% if page == 1 %}
+        <a class="pagination-previous" disabled>Previous</a>
+        {% else %}
+        <a href="?p={{ page - 1 }}" class="pagination-previous">Previous</a>
+        {% endif %} {% if page == total_pages %}
+        <a class="pagination-next" disabled>Next</a>
+        {% else %}
+        <a href="?p={{ page + 1 }}" class="pagination-next">Next</a>
+        {% endif %}
+        <ul class="pagination-list">
+          {% if total_pages <= 6 %}
+            {% for p in range(1, total_pages) %}
+              {% if p == page %}
               <li>
-                <a href="?p=1" class="pagination-link{% if page == 1 %} is-current{% endif %}" aria-label="Goto page 1">1</a>
+                <a
+                  href="#"
+                  class="pagination-link is-current"
+                  aria-label="Page {{ p }}"
+                  aria-current="page"
+                  >{{ p }}</a
+                >
               </li>
-              {% if page > 4 %}
-                <li><span class="pagination-ellipsis">&hellip;</span></li>
+              {% else %}
+              <li>
+                <a
+                  href="?p={{ p }}"
+                  class="pagination-link"
+                  aria-label="Goto page {{ p }}"
+                  >{{ p }}</a
+                >
+              </li>
               {% endif %}
-              {% for p in range(max(page - 2, 2), min(page + 3, total_pages + 1)) %}
-                {% if p == page %}
+            {% endfor %}
+          {% else %}
+              {% if page > 5 %}
                   <li>
-                    <span class="pagination-link is-current" aria-label="Page {{ p }}" aria-current="page">{{ p }}</span>
+                    <a
+                      href="?p=1"
+                      class="pagination-link"
+                      aria-label="Goto page 1"
+                      >1</a
+                    >
                   </li>
+                 <li><span class="pagination-ellipsis">&hellip;</span></li>
+                 {% for p in range(page - 3, page) %}
+                  <li>
+                    <a
+                      href="?p={{ p }}"
+                      class="pagination-link"
+                      aria-label="Goto page {{ p }}"
+                      >{{ p }}</a
+                    >
+                  </li>
+                  {% endfor %}
                 {% else %}
+                  {% for p in range(1, page) %}
                   <li>
-                    <a href="?p={{ p }}" class="pagination-link" aria-label="Goto page {{ p }}">{{ p }}</a>
+                    <a
+                      href="?p={{ p }}"
+                      class="pagination-link"
+                      aria-label="Goto page {{ p }}"
+                      >{{ p }}</a
+                    >
                   </li>
+                  {% endfor %}
                 {% endif %}
-              {% endfor %}
-              {% if page < total_pages - 3 %}
-                <li><span class="pagination-ellipsis">&hellip;</span></li>
-                <li>
-                  <a href="?p={{ total_pages }}" class="pagination-link{% if page == total_pages %} is-current{% endif %}" aria-label="Goto page {{ total_pages }}">{{ total_pages }}</a>
-                </li>
-              {% elif page == total_pages - 2 %}
-                <li>
-                  <a href="?p={{ total_pages - 1 }}" class="pagination-link" aria-label="Goto page {{ total_pages - 1 }}">{{ total_pages - 1 }}</a>
-                </li>
-                <li>
-                  <a href="?p={{ total_pages }}" class="pagination-link{% if page == total_pages %} is-current{% endif %}" aria-label="Page {{ total_pages }}" aria-current="page">{{ total_pages }}</a>
-                </li>
-              {% elif page == total_pages - 1 %}
-                <li>
-                  <a href="?p={{ total_pages - 2 }}" class="pagination-link" aria-label="Goto page {{ total_pages - 2 }}">{{ total_pages - 2 }}</a>
-                </li>
-                <li>
-                  <a href="?p={{ total_pages - 1 }}" class="pagination-link{% if page == total_pages - 1 %} is-current{% endif %}" aria-label="Goto page {{ total_pages - 1 }}">{{ total_pages - 1 }}</a>
-                </li>
-                <li>
-                  <a href="?p={{ total_pages }}" class="pagination-link{% if page == total_pages %} is-current{% endif %}" aria-label="Page {{ total_pages }}" aria-current="page">{{ total_pages }}</a>
-                </li>
+                  <li>
+                    <a
+                      href="#"
+                      class="pagination-link is-current"
+                      aria-label="Page {{ page }}"
+                      aria-current="page"
+                      >{{ page }}</a
+                    >
+                  </li>
+              {% if page < total_pages - 5 %}
+                  {% for p in range (page + 1, page + 3) %}
+                  <li>
+                    <a
+                      href="?p={{ p }}"
+                      class="pagination-link"
+                      aria-label="Goto page {{ p }}"
+                      >{{ p }}</a
+                    >
+                  </li>
+                  {% endfor %}
+                  <li><span class="pagination-ellipsis">&hellip;</span></li>
+                  <li>
+                    <a
+                      href="?p={{ total_pages }}"
+                      class="pagination-link"
+                      aria-label="Goto page {{ total_pages }}"
+                      >{{ total_pages }}</a
+                    >
+                  </li>
+              {% else %}
+                {% for p in range(page + 1, total_pages + 1) %}
+                  <li>
+                    <a
+                      href="?p={{ p }}"
+                      class="pagination-link"
+                      aria-label="Goto page {{ p }}"
+                      >{{ p }}</a
+                    >
+                  </li>
+                  {% endfor %}
               {% endif %}
-            {% endif %}
+          {% endif %}
           </ul>
         </nav>
       </div>
