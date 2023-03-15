@@ -7,6 +7,7 @@ import requests
 from goose3 import Goose
 import redis
 import openai
+from tiktoken import Tokenizer
 
 
 def initialize_database():
@@ -110,9 +111,7 @@ def fetch_article_texts():
 
     conn = sqlite3.connect("db.sqlite")
     cursor = conn.cursor()
-    cursor.execute(
-        "SELECT * FROM stories WHERE text IS NULL"
-    )
+    cursor.execute("SELECT * FROM stories WHERE text IS NULL")
     stories = cursor.fetchall()
     conn.close()
     print(f"Fetching article texts for {len(stories)} stories.")
@@ -124,35 +123,70 @@ def fetch_article_texts():
     print("Done fetching article texts.")
 
 
+def count_tokens(text):
+    tokenizer = Tokenizer()
+    tokens = tokenizer.tokenize(text)
+    return len(tokens)
+
+
+def chunk_text(text, max_tokens):
+    tokenizer = Tokenizer()
+    tokens = tokenizer.tokenize(text)
+    chunks = []
+
+    current_chunk = []
+    current_token_count = 0
+
+    for token in tokens:
+        token_count = len(token)
+        if current_token_count + token_count <= max_tokens:
+            current_chunk.append(token)
+            current_token_count += token_count
+        else:
+            chunks.append("".join(current_chunk))
+            current_chunk = [token]
+            current_token_count = token_count
+
+    if current_chunk:
+        chunks.append("".join(current_chunk))
+
+    return chunks
+
+
 def summarize_text(text):
     openai.api_key = os.environ["OPENAI_KEY"]
     model_engine = "text-davinci-003"
     prompt_template = "{}\n\nTl;dr (max 200 words)"
-    chunk_size = 500  # set the size of each chunk
+    max_tokens = 500  # set the size of each chunk
 
-    # Divide the text into chunks of size 'chunk_size'
-    chunks = [text[i : i + chunk_size] for i in range(0, len(text), chunk_size)]
+    def recursive_summarize(text):
+        chunks = chunk_text(text, max_tokens)
+        summaries = []
 
-    summaries = []
+        # Summarize each chunk separately using the OpenAI API
+        for chunk in chunks:
+            prompt = prompt_template.format(chunk)
 
-    # Summarize each chunk separately using the OpenAI API
-    for chunk in chunks:
-        prompt = prompt_template.format(chunk)
+            response = openai.Completion.create(
+                engine=model_engine,
+                prompt=prompt,
+                max_tokens=150,
+                n=1,
+                stop=None,
+                temperature=0.5,
+            )
 
-        response = openai.Completion.create(
-            engine=model_engine,
-            prompt=prompt,
-            max_tokens=150,
-            n=1,
-            stop=None,
-            temperature=0.5,
-        )
+            summary = response.choices[0].text.strip()
+            summaries.append(summary)
 
-        summary = response.choices[0].text.strip()
-        summaries.append(summary)
+        combined_summary = " ".join(summaries)
 
-    # Combine the summaries into a final summary
-    final_summary = " ".join(summaries)
+        if count_tokens(combined_summary) > 4000:
+            return recursive_summarize(combined_summary)
+        else:
+            return combined_summary
+
+    final_summary = recursive_summarize(text)
 
     cohesion_prompt = f"{final_summary}\n\nTl;dr (max 2 paragraphs)"
 
@@ -192,9 +226,7 @@ def summarize_all_texts():
 
     conn = sqlite3.connect("db.sqlite")
     cursor = conn.cursor()
-    cursor.execute(
-        "SELECT * FROM stories WHERE summary IS NULL AND text IS NOT NULL"
-    )
+    cursor.execute("SELECT * FROM stories WHERE summary IS NULL AND text IS NOT NULL")
     stories = cursor.fetchall()
     conn.close()
 
