@@ -137,14 +137,13 @@ def chunk_text(text, max_tokens):
     current_token_count = 0
 
     for token in tokens:
-        token_count = len(token)
-        if current_token_count + token_count <= max_tokens:
+        if current_token_count + 1 <= max_tokens:
             current_chunk.append(token)
-            current_token_count += token_count
+            current_token_count += 1
         else:
             chunks.append(encoding.decode(current_chunk))
             current_chunk = [token]
-            current_token_count = token_count
+            current_token_count = 1
 
     if current_chunk:
         chunks.append(encoding.decode(current_chunk))
