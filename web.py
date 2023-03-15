@@ -11,38 +11,37 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 cache = Cache(app=app, config={'CACHE_TYPE': 'redis', 'CACHE_REDIS_URL': 'redis://redis:6379/0'})
 
+@cache.cached(timeout=60 * 60 * 24, query_string=True)
 @app.route("/")
-@cache.cached(timeout=60 * 60 * 24, query_string=True) # Cache the response for 1 day
 def index():
+    """
+    Renders the homepage with a list of 20 latest stories, paginated by 20 per page.
+
+    Returns:
+        HTML template: index.html
+    """
     conn = sqlite3.connect("db.sqlite")
     cursor = conn.cursor()
 
-    # Get the page number from the query parameters or default to 1
+    # Determine the current page and the offset of the stories to be retrieved
     page = int(request.args.get("p", 1))
-
-    # Calculate the offset based on the page number and the pagination size of 20
     offset = (page - 1) * 20
 
-    # Fetch stories for the current page from the database filtering on those that were posted today and have a summary
-    cursor.execute(
-        "SELECT COUNT(*) FROM stories WHERE summary IS NOT NULL"
-    )
+    # Retrieve the total count of stories and calculate the total number of pages
+    cursor.execute("SELECT COUNT(*) FROM stories WHERE summary IS NOT NULL")
     total_count = cursor.fetchone()[0]
-
     total_pages = math.ceil(total_count / 20)
 
+    # Retrieve the latest 20 stories and their corresponding timestamps
     cursor.execute(
         "SELECT * FROM stories WHERE summary IS NOT NULL ORDER BY time DESC, score DESC LIMIT 20 OFFSET ?",
         (offset,),
     )
     stories = cursor.fetchall()
 
-    # Get the time of the most recent item in the db
-    cursor.execute(
-        "SELECT time FROM stories ORDER BY time DESC LIMIT 1"
-    )
+    # Retrieve the latest timestamp and format it in a user-friendly way
+    cursor.execute("SELECT time FROM stories ORDER BY time DESC LIMIT 1")
     latest = cursor.fetchone()[0]
-    # Convert to datetime utc string
     latest = datetime.datetime.utcfromtimestamp(latest).strftime("%Y-%m-%d %H:%M:%S")
 
     conn.close()

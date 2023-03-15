@@ -11,7 +11,12 @@ import tiktoken
 
 
 def initialize_database():
-    """Initialize database and create necessary tables."""
+    """
+    Initializes the database and creates the necessary tables if they do not exist.
+
+    Returns:
+        None
+    """
     conn = sqlite3.connect("db.sqlite")
     cursor = conn.cursor()
     cursor.execute(
@@ -31,9 +36,23 @@ def initialize_database():
 
 
 def fetch_stories():
-    """Fetches today's stories from HackerNews API returns them as a list of dicts."""
+    """
+    Fetches today's top stories from HackerNews API and saves them to the database.
+
+    Returns:
+        None
+    """
 
     def get_story_details(story_id):
+        """
+        Retrieves details of a single story from the HackerNews API.
+
+        Args:
+            story_id (int): The ID of the story to retrieve.
+
+        Returns:
+            dict: A dictionary containing the details of the story.
+        """
         url = f"https://hacker-news.firebaseio.com/v0/item/{story_id}.json"
         response = requests.get(url)
         return response.json()
@@ -88,7 +107,23 @@ def fetch_stories():
 
 
 def fetch_article_texts():
+    """
+    Fetches the full article text for each story in the database and saves it to the database.
+
+    Returns:
+        None
+    """
+
     def _fetch_text_job(story):
+        """
+        Extracts the full article text for a single story and saves it to the database.
+
+        Args:
+            story (tuple): A tuple containing the details of the story.
+
+        Returns:
+            None
+        """
         try:
             g = Goose({"enable_image_fetching": True})
             article = g.extract(url=story[2])
@@ -124,11 +159,30 @@ def fetch_article_texts():
 
 
 def count_tokens(text):
+    """
+    Counts the number of tokens in a given text.
+
+    Args:
+        text (str): The text to count the tokens of.
+
+    Returns:
+        int: The number of tokens in the text.
+    """
     encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
     return len(encoding.encode(text))
 
 
 def chunk_text(text, max_tokens):
+    """
+    Breaks up a given text into chunks of at most `max_tokens` tokens.
+
+    Args:
+        text (str): The text to chunk.
+        max_tokens (int): The maximum number of tokens allowed in each chunk.
+
+    Returns:
+        list of str: The chunks of text.
+    """
     encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
     tokens = encoding.encode(text)
     chunks = []
@@ -152,12 +206,30 @@ def chunk_text(text, max_tokens):
 
 
 def summarize_text(text):
+    """
+    Generates a summary of a given text using OpenAI's text-davinci-003 model.
+
+    Args:
+        text (str): The text to summarize.
+
+    Returns:
+        str: The generated summary of the text.
+    """
     openai.api_key = os.environ["OPENAI_KEY"]
     model_engine = "text-davinci-003"
     prompt_template = "{}\n\nTl;dr (max 200 words)"
     max_tokens = 500  # set the size of each chunk
 
     def recursive_summarize(text):
+        """
+        Recursively generates a summary of a given text.
+
+        Args:
+            text (str): The text to summarize.
+
+        Returns:
+            str: The generated summary of the text.
+        """
         chunks = chunk_text(text, max_tokens)
         summaries = []
 
@@ -203,9 +275,23 @@ def summarize_text(text):
     return rewritten_summary
 
 
-# Fetch all texts from the database and summarize them
 def summarize_all_texts():
+    """
+    Summarizes the text of all stories that have not yet been summarized.
+
+    Returns:
+        None
+    """
     def _summarize_job(story):
+        """
+        Summarizes the text of a given story and updates the summary in the database.
+
+        Args:
+            story (tuple): A tuple representing a story record in the database.
+
+        Returns:
+            None
+        """
         if not story[4]:
             return
         try:
