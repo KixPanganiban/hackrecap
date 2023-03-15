@@ -25,8 +25,7 @@ def index():
 
     # Fetch stories for the current page from the database filtering on those that were posted today and have a summary
     cursor.execute(
-        "SELECT COUNT(*) FROM stories WHERE time >= ? AND summary IS NOT NULL",
-        (datetime.datetime.now().timestamp() - 86400,),
+        "SELECT COUNT(*) FROM stories WHERE summary IS NOT NULL"
     )
     total_count = cursor.fetchone()[0]
 
