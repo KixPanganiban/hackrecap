@@ -32,6 +32,11 @@ To get started, follow these steps:
 
 6. Open your web browser and go to http://localhost:8888.
 
+## Routes
+
+- `/` index page which returns the HTML version of the summarized stories
+- `/api/stories` a JSON endpoint that accepts `limit` and `offset`, returning the summarized stories and their metadata
+
 ## Configuration
 
 The following environment variables need to be set to configure the app:
