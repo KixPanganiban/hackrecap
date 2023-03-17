@@ -5,6 +5,7 @@ import sqlite3
 import os
 import requests
 
+from bs4 import BeautifulSoup
 from goose3 import Goose
 import redis
 import openai
@@ -115,16 +116,50 @@ def fetch_stories():
 
 
 def fetch_article_texts():
-    """
-    Fetches the full article text for each story in the database and saves it to the database.
+    """Fetch and save the full article text for each story in the database."""
 
-    Returns:
-        None
-    """
+    def extract_tweet_text(tweet_url):
+        """
+        Extract tweet text using BeautifulSoup.
+
+        Args:
+            tweet_url (str): The URL of the tweet.
+
+        Returns:
+            str: The extracted tweet text, or None if extraction fails.
+        """
+        response = requests.get(tweet_url)
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, 'html.parser')
+            tweet_text = soup.find('div', {'class': 'css-901oao r-hkyrab r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-bnwqim r-qvutc0'})
+            return tweet_text.get_text() if tweet_text else None
+        else:
+            return None
+
+    def save_text_to_db(story_id, text, image=""):
+        """
+        Save the extracted text and image to the database.
+
+        Args:
+            story_id (int): The story ID.
+            text (str): The extracted text.
+            image (str, optional): The image URL. Defaults to an empty string.
+
+        Returns:
+            None
+        """
+        conn = sqlite3.connect("db.sqlite")
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE stories SET text = ?, image = ? WHERE id = ?",
+            (text, image, story_id),
+        )
+        conn.commit()
+        conn.close()
 
     def _fetch_text_job(story):
         """
-        Extracts the full article text for a single story and saves it to the database.
+        Extract and save the full article text for a single story.
 
         Args:
             story (tuple): A tuple containing the details of the story.
@@ -132,25 +167,25 @@ def fetch_article_texts():
         Returns:
             None
         """
-        try:
-            g = Goose({"enable_image_fetching": True})
-            article = g.extract(url=story[2])
-        except:
-            logger.info(f"Failed to fetch article text for story: {story[1]}")
+        url = story[2]
+        if url.startswith('https://twitter.com'):
+            text = extract_tweet_text(url)
+            if text:
+                save_text_to_db(story[0], text)
+                logger.info(f"Added text to story: {story[1]}")
+            else:
+                logger.info(f"Failed to fetch tweet text for story: {story[1]}")
         else:
-            conn = sqlite3.connect("db.sqlite")
-            cursor = conn.cursor()
-            cursor.execute(
-                "UPDATE stories SET text = ?, image = ? WHERE id = ?",
-                (
-                    article.cleaned_text,
-                    article.top_image.src if article.top_image else "",
-                    story[0],
-                ),
-            )
-            conn.commit()
-            logger.info(f"Added text to story: {story[1]}")
-            conn.close()
+            try:
+                g = Goose({"enable_image_fetching": True})
+                article = g.extract(url=url)
+                save_text_to_db(
+                    story[0], article.cleaned_text,
+                    article.top_image.src if article.top_image else ""
+                )
+                logger.info(f"Added text to story: {story[1]}")
+            except:
+                logger.info(f"Failed to fetch article text for story: {story[1]}")
 
     conn = sqlite3.connect("db.sqlite")
     cursor = conn.cursor()
@@ -164,7 +199,6 @@ def fetch_article_texts():
             future.result()
 
     logger.info("Done fetching article texts.")
-
 
 def count_tokens(text):
     """
