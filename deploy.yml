@@ -36,3 +36,10 @@
       args:
         chdir: /root/hackrecap
         executable: /bin/bash
+
+    - name: Install crontab for summarizer.py
+      cron:
+        name: Run summarizer.py daily
+        minute: 0
+        hour: 0
+        job: cd /root/hackrecap && OPENAI_KEY="{{ lookup('env', 'OPENAI_KEY') }}" docker compose exec web python summarizer.py
