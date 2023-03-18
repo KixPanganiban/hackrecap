@@ -2,7 +2,7 @@ FROM python:3.11-alpine
 
 WORKDIR /app
 
-RUN apk update && apk add --no-cache gcc musl-dev
+RUN apk update && apk add --no-cache gcc musl-dev libffi-dev
 
 COPY requirements.txt .
 

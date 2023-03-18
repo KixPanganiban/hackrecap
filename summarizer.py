@@ -7,9 +7,8 @@ import requests
 
 from bs4 import BeautifulSoup
 from goose3 import Goose
+from openai_summarize import OpenAISummarize
 import redis
-import openai
-import tiktoken
 
 
 logger = logging.getLogger(__name__)
@@ -200,122 +199,6 @@ def fetch_article_texts():
 
     logger.info("Done fetching article texts.")
 
-def count_tokens(text):
-    """
-    Counts the number of tokens in a given text.
-
-    Args:
-        text (str): The text to count the tokens of.
-
-    Returns:
-        int: The number of tokens in the text.
-    """
-    encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
-    return len(encoding.encode(text))
-
-
-def chunk_text(text, max_tokens):
-    """
-    Breaks up a given text into chunks of at most `max_tokens` tokens.
-
-    Args:
-        text (str): The text to chunk.
-        max_tokens (int): The maximum number of tokens allowed in each chunk.
-
-    Returns:
-        list of str: The chunks of text.
-    """
-    encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
-    tokens = encoding.encode(text)
-    chunks = []
-
-    current_chunk = []
-    current_token_count = 0
-
-    for token in tokens:
-        if current_token_count + 1 <= max_tokens:
-            current_chunk.append(token)
-            current_token_count += 1
-        else:
-            chunks.append(encoding.decode(current_chunk))
-            current_chunk = [token]
-            current_token_count = 1
-
-    if current_chunk:
-        chunks.append(encoding.decode(current_chunk))
-
-    return chunks
-
-
-def summarize_text(text):
-    """
-    Generates a summary of a given text using OpenAI's text-davinci-003 model.
-
-    Args:
-        text (str): The text to summarize.
-
-    Returns:
-        str: The generated summary of the text.
-    """
-    openai.api_key = os.environ["OPENAI_KEY"]
-    model_engine = "text-davinci-003"
-    prompt_template = "{}\n\nTl;dr (max 200 words)"
-    max_tokens = 500  # set the size of each chunk
-
-    def recursive_summarize(text):
-        """
-        Recursively generates a summary of a given text.
-
-        Args:
-            text (str): The text to summarize.
-
-        Returns:
-            str: The generated summary of the text.
-        """
-        chunks = chunk_text(text, max_tokens)
-        summaries = []
-
-        # Summarize each chunk separately using the OpenAI API
-        for chunk in chunks:
-            prompt = prompt_template.format(chunk)
-
-            response = openai.Completion.create(
-                engine=model_engine,
-                prompt=prompt,
-                max_tokens=150,
-                n=1,
-                stop=None,
-                temperature=0.5,
-            )
-
-            summary = response.choices[0].text.strip()
-            summaries.append(summary)
-
-        combined_summary = " ".join(summaries)
-
-        if count_tokens(combined_summary) > 4000:
-            return recursive_summarize(combined_summary)
-        else:
-            return combined_summary
-
-    final_summary = recursive_summarize(text)
-
-    cohesion_prompt = f"{final_summary}\n\nTl;dr (max 2 paragraphs)"
-
-    response = openai.Completion.create(
-        engine=model_engine,
-        prompt=cohesion_prompt,
-        temperature=0.7,
-        max_tokens=300,
-        top_p=1.0,
-        frequency_penalty=0.0,
-        presence_penalty=1,
-    )
-
-    rewritten_summary = response.choices[0].text.strip()
-
-    return rewritten_summary
-
 
 def summarize_all_texts():
     """
@@ -338,7 +221,8 @@ def summarize_all_texts():
         if not story[4]:
             return
         try:
-            summary = summarize_text(story[4])
+            summarizer = OpenAISummarize(openai_key=os.environ["OPENAI_KEY"])
+            summary = summarizer.summarize_text(story[4])
         except Exception as e:
             logger.info(
                 f"Failed to summarize text for story: {story[1]}. Error: {str(e)}"
